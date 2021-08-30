@@ -23,51 +23,17 @@ class _WeatherState extends State<Weather> {
     String apiUrl = base + '?q=' + city + '&' + key + '&' + units;
     final response = await http.get(Uri.parse(apiUrl));
     final Map<String, dynamic> data = jsonDecode(response.body);
-    data.forEach((key, value) {
-      if (key == 'name') {
-        setState(() {
-          city = value;
-        });
-      }
-      if (key == 'main') {
-        Map<String, dynamic> findTemp = value;
-        findTemp.forEach((key, value) {
-          if (key == 'temp') {
-            setState(() {
-              temp = value;
-            });
-          }
-        });
-      }
-      if (key == 'sys') {
-        Map<String, dynamic> findCountry = value;
-        findCountry.forEach((key, value) {
-          if (key == 'country') {
-            setState(() {
-              country = value;
-            });
-          }
-        });
-      }
-      if (key == 'weather') {
-        List<dynamic> findArr = value;
-        findArr.forEach((element) {
-          Map<String, dynamic> findDesc = element;
-          findDesc.forEach((key, value) {
-            if (key == 'description') {
-              setState(() {
-                desc = value;
-              });
-            }
-            if (key == 'icon') {
-              setState(() {
-                imgIcon = value;
-              });
-            }
-          });
-        });
-      }
-    });
+    try {
+      setState(() {
+        city = data['name'];
+        temp = data['main']['temp'];
+        country = data['sys']['country'];
+        desc = data['weather'][0]['description'];
+        imgIcon = data['weather'][0]['icon'];
+      });
+    } catch (e) {
+      print('Not found!');
+    }
   }
 
   @override
@@ -134,33 +100,38 @@ class _WeatherState extends State<Weather> {
                   ),
                 ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: buildText(city, 40, true, false),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: buildText(',' + country, 40, true, false),
-                  ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 70.0),
-                child:
-                    buildText(temp.floor().toString() + '°', 65.0, true, false),
-              ),
-              SizedBox(
-                height: 10.0,
-              ),
-              buildText(desc, 18.0, false, true),
-              SizedBox(
-                height: 50.0,
-              ),
-              Image.network(
-                  'https://openweathermap.org/img/wn/' + imgIcon + '@2x.png')
+              country == ''
+                  ? Container()
+                  : Column(children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: buildText(city, 40, true, false),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: buildText(',' + country, 40, true, false),
+                          ),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 70.0),
+                        child: buildText(
+                            temp.floor().toString() + '°', 65.0, true, false),
+                      ),
+                      SizedBox(
+                        height: 10.0,
+                      ),
+                      buildText(desc, 18.0, false, true),
+                      SizedBox(
+                        height: 50.0,
+                      ),
+                      Image.network('https://openweathermap.org/img/wn/' +
+                          imgIcon +
+                          '@2x.png'),
+                    ]),
             ],
           ),
         ),
